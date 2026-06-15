@@ -4,6 +4,12 @@ version = "0.0.1"
 entrypoint = "leipzig-typst.typ"
 authors = ["Lukas Böhm"]
 license = "MIT"
-description = "Leipzig slide template in typst"
+description = "Leipzig slide template in Typst"
 repository = "https://github.com/lukasbm/leipzig-typst"
 exclude = ["README.md"]
+categories = ["presentation"]
+
+[template]
+path = "showcase"
+entrypoint = "example/showcase.typ"
+thumbnail = "example/showcase.png"

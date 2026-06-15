@@ -1,18 +1,5 @@
 #import "colors.typ": *
 
-//////////////////////
-// state stuff (essentially a replacement for global vars)
-//////////////////////
-
-#let state-short-title = state("short-title", none)
-#let state-short-author = state("short-author", none)
-#let state-short-date = state("short-date", datetime.today())
-#let state-short-organization = state("short-organization", none)
-
-//////////////////////
-// shortcuts / commands
-//////////////////////
-
 #let LaTeX = {
   [L]
   box(move(dx: -4.2pt, dy: -1.2pt, box(scale(65%)[A])))
@@ -30,38 +17,3 @@
   box(move(dx: -8.0pt, dy: 0pt, [T]))
   h(-8.0pt)
 }
-
-//////////////////////
-// config
-//////////////////////
-
-#let ascent = 2mm
-
-#let config16by9 = (
-  // skips
-  TitleSkip: 5mm, // distance left empty on top of header
-  FooterSkip: 3mm,
-  // margins
-  MarginLeft: 14.4mm,
-  MarginRight: 3.5mm,
-  HeaderHeight: 4.5em,
-  FooterHeight: 9mm,
-  // separator line
-  LineWidthThick: 2mm,
-  LineWidthThin: .5mm,
-  // wortmarke logo
-  WordMarkTitleHeight: 25.4mm, // height if placed in title
-  WordMarkTitleWidth: 50.2mm, // width if placed in title
-  WordMarkHeight: 17mm, // regular height
-  WordMarkWidth: 34mm, //regular width
-  WordMarkLeftHeight: 12mm, // height if placed left
-  WordMarkLeftWidth: 74mm, // width if placed left
-  WordMarkBoxWidth: 60mm, // width reserved for wordmark
-  WordMarkSkip: 12mm, // gutter before wordmark space
-  // kennung
-  KennungHeight: 18mm,
-)
-
-// TODO: 4 by 3 config
-
-#let config = config16by9
