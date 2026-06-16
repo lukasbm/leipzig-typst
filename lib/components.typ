@@ -13,21 +13,19 @@
 
 // The three-coloured corner accent for the title slide.
 //
-// All geometry is computed with plain, unitless numbers in the unit square
-// `(0,0)` (top-left) .. `(1,1)` (bottom-right) — this is required because
-// cetz's intersection math takes dot products of the coordinates, which only
-// works on numbers, not lengths.
-//
-// The resulting points are emitted as ratios (`%`), so this is simply a built
-// polygon that fills whatever square box it is placed in. Placing it inside a
-// square keeps the shape independent of the page aspect ratio (see
-// `title-slide` in slides.typ).
+// Geometry is computed with plain, unitless numbers (cetz's intersection math
+// takes dot products of the coordinates, which only work on numbers, not
+// lengths). Coordinates are measured from the bottom-right corner: x grows to
+// the left, y grows upward, both in the range 0..1. The `rel` helper maps them
+// back to box ratios (`%`), so this is simply a built polygon that fills
+// whatever square box it is placed in; using a square keeps it independent of
+// the page aspect ratio (see `title-slide` in slides.typ).
 #let corner-design = {
-  let right-top = (1.0, 0.0)
-  let right-middle = (1.0, 0.7)
-  let outer-corner = (1.0, 1.0)
-  let bottom-left = (0.6, 1.0)
-  let bottom-middle = (0.9, 1.0)
+  let outer-corner = (0.0, 0.0)
+  let right-top = (0.0, 0.7)
+  let right-middle = (0.0, 0.2)
+  let bottom-left = (0.6, 0.0)
+  let bottom-middle = (0.15, 0.0)
   let inner-corner = intersection.line-line(
     // line 1
     right-top,
@@ -40,8 +38,9 @@
     eps: 0.003,
   )
 
-  // Map a unitless point to relative (ratio) coordinates and draw a polygon.
-  let rel(p) = (p.at(0) * 100%, p.at(1) * 100%)
+  // Map a bottom-right-relative point to box ratios and draw a polygon. All
+  // polygons share the box origin (via `place`) so they overlap into one shape.
+  let rel(p) = ((1 - p.at(0)) * 100%, (1 - p.at(1)) * 100%)
   let shape(fill, ..points) = place(polygon(
     fill: fill,
     stroke: none,
@@ -55,15 +54,16 @@
 
 
 // A taller "side band" variant of the accent. Same conventions as
-// `corner-design`: unitless geometry in the unit square, emitted as ratios so
-// it fills whatever square box it is placed in.
+// `corner-design`: unitless geometry measured from the bottom-right corner
+// (x grows left, y grows up), emitted as ratios so it fills whatever square
+// box it is placed in.
 #let side-design = {
-  let top-left = (0.6, 0.0)
-  let top-middle = (0.93, 0.0)
-  let top-right = (1.0, 0.0)
-  let bottom-left = (0.65, 1.0)
-  let bottom-center1 = (0.9, 1.0)
-  let bottom-center2 = (0.95, 1.0)
+  let top-left = (0.55, 1.0)
+  let top-middle = (0.15, 1.0)
+  let top-right = (0.0, 1.0)
+  let bottom-left = (0.55, 0.0)
+  let bottom-center1 = (0.15, 0.0)
+  let bottom-center2 = (0.08, 0.0)
   let inner-corner = intersection.line-line(
     // line 1
     bottom-left,
@@ -76,12 +76,12 @@
     eps: 0.003,
   )
   // A line parallel to (bottom-left -> inner-corner) but passing through
-  // bottom-center2, intersected with the right edge of the page.
+  // bottom-center2, intersected with the right edge (x = 0 here).
   let dir = (inner-corner.at(0) - bottom-left.at(0), inner-corner.at(1) - bottom-left.at(1))
   let right-middle = intersection.line-line(
     // line 1: the right edge
-    (1.0, 0.0),
-    (1.0, 1.0),
+    (0.0, 1.0),
+    (0.0, 0.0),
     // line 2: parallel, through bottom-center2
     bottom-center2,
     (bottom-center2.at(0) + dir.at(0), bottom-center2.at(1) + dir.at(1)),
@@ -89,14 +89,14 @@
     eps: 0.03,
   )
 
-  let rel(p) = (p.at(0) * 100%, p.at(1) * 100%)
+  let rel(p) = ((1 - p.at(0)) * 100%, (1 - p.at(1)) * 100%)
   let shape(fill, ..points) = place(polygon(
     fill: fill,
     stroke: none,
     ..points.pos().map(rel),
   ))
 
-  shape(LeipzigAquamarin, top-left, inner-corner, bottom-left)
+  shape(LeipzigAquamarin, bottom-left, inner-corner, bottom-center1)
   shape(LeipzigGranat, top-left, top-middle, inner-corner)
   shape(
     LeipzigKarneol,
@@ -107,6 +107,7 @@
     bottom-center1,
     inner-corner,
   )
+  shape(LeipzigGranat, bottom-center2, (0.0, 0.0), right-middle)
 }
 
 // Orange en-dash used as the list marker on every level.
