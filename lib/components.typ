@@ -2,6 +2,8 @@
 #import "colors.typ": *
 #import "fonts.typ": *
 
+#import "@preview/cetz:0.5.2": intersection
+
 // The University of Leipzig logo (seal + "UNIVERSITÄT LEIPZIG" wordmark).
 // Used as the large plaque on the title slide and as the small logo in the
 // footer of every content slide.
@@ -12,39 +14,83 @@
 // The three-coloured corner accent placed in the bottom-right corner of the
 // title slide. The polygon coordinates are resolved against `size` explicitly
 // (absolute lengths) so the shape is deterministic regardless of context.
-#let title-corner-shape(size: 3.5cm) = {
+#let corner-design(size: 100%) = {
   let p(x, y) = (x * size, y * size)
-  let inner-corner = p(0.90, 0.90)
-  let start-left = p(1.00, 0.00)
-  let start-top = p(0.70, 1.00)
-  let outer-corner = p(1.00, 1.00)
-  let mid-left = p(0.87, 1.00)
-  let mid-top = p(1.00, 0.87)
+  let right-top = p(1.0, 0.0)
+  let right-middle = p(1.0, 0.7)
+  let outer-corner = p(1.0, 1.0)
+  let bottom-left = p(0.6, 1.0)
+  let bottom-middle = p(0.9, 1.0)
+  let inner-corner = intersection.line-line(
+    // line 1
+    right-top,
+    bottom-middle,
+    // line 2
+    bottom-left,
+    right-middle,
+    // vars
+    ray: false,
+    eps: 0.003,
+  )
 
   box(width: size, height: size, {
     place(polygon(
       fill: LeipzigAquamarin,
       stroke: none,
-      start-left,
-      outer-corner,
+      bottom-left,
+      bottom-middle,
       inner-corner,
     ))
     place(polygon(
       fill: LeipzigGranat,
       stroke: none,
-      start-top,
-      mid-top,
+      right-top,
+      right-center,
       inner-corner,
     ))
     place(polygon(
       fill: LeipzigKarneol,
       stroke: none,
-      mid-left,
+      bottom-middle,
       inner-corner,
-      mid-top,
+      right-middle,
       outer-corner,
     ))
   })
+}
+
+
+#let side-design(size: 100%) = {
+  let p(x, y) = (x * size, y * size)
+
+  let top-left = p(0.6, 0.0)
+  let top-middle = p(0.93, 0.0)
+  let top-right = p(1.0, 0.0)
+  let bottom-left = p(0.65, 1.0)
+  let bottom-center1 = p(0.9, 1.0)
+  let bottom-center2 = p(0.95, 1.0)
+  let inner-corner = intersection.line-line(
+    // line 1
+    bottom-left,
+    top-middle,
+    // line 2,
+    top-left,
+    bottom-center1,
+    //
+    ray: false,
+    eps: 0.003,
+  )
+  // parallel to bottom-left - inner-corner line! translate the line vector and get intersection with right side of page.
+  let right-middle = intersection.line-line(
+    // line 1: the right side
+    (1.0, 0.0),
+    (1.0, 1.0),
+    // line 2: moved parallel
+    bottom-center2,
+    (inner-corner.at(0) + bottom-center2 - bottom-left.at(0), inner-corner.at(1)),
+    ray: true,
+    eps: 0.03,
+  )
 }
 
 // Orange en-dash used as the list marker on every level.

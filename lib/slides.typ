@@ -1,9 +1,7 @@
 #import "@preview/touying:0.7.4": *
 #import "colors.typ": *
 #import "fonts.typ": *
-#import "components.typ": (
-  leipzig-footer, leipzig-header, plaque, title-corner-shape,
-)
+#import "components.typ": corner-design, leipzig-footer, leipzig-header, plaque
 
 // Regular content slide.
 //
@@ -123,7 +121,7 @@
 
   let body = {
     place(top + left, dx: pad-x, dy: 1.2cm, plaque(height: 2.2cm))
-    place(bottom + right, title-corner-shape(size: 5cm))
+    place(bottom + right, corner-design(size: 15cm))
     align(
       horizon + left,
       pad(x: pad-x, stack(dir: ttb, spacing: 0.9em, ..blocks)),
