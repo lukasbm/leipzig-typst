@@ -121,7 +121,14 @@
 
   let body = {
     place(top + left, dx: pad-x, dy: 1.2cm, plaque(height: 2.2cm))
-    place(bottom + right, corner-design(size: 15cm))
+    // Anchor the corner accent's right-top to the page's top-right corner.
+    // The accent is drawn into a square whose side equals the page height, so
+    // it never stretches with the page aspect ratio.
+    place(top + right, layout(size => box(
+      width: size.height,
+      height: size.height,
+      corner-design,
+    )))
     align(
       horizon + left,
       pad(x: pad-x, stack(dir: ttb, spacing: 0.9em, ..blocks)),

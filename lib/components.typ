@@ -11,16 +11,23 @@
 
 #let plaque(height: 1.6cm) = image(leipzig-logo, height: height)
 
-// The three-coloured corner accent placed in the bottom-right corner of the
-// title slide. The polygon coordinates are resolved against `size` explicitly
-// (absolute lengths) so the shape is deterministic regardless of context.
-#let corner-design(size: 100%) = {
-  let p(x, y) = (x * size, y * size)
-  let right-top = p(1.0, 0.0)
-  let right-middle = p(1.0, 0.7)
-  let outer-corner = p(1.0, 1.0)
-  let bottom-left = p(0.6, 1.0)
-  let bottom-middle = p(0.9, 1.0)
+// The three-coloured corner accent for the title slide.
+//
+// All geometry is computed with plain, unitless numbers in the unit square
+// `(0,0)` (top-left) .. `(1,1)` (bottom-right) — this is required because
+// cetz's intersection math takes dot products of the coordinates, which only
+// works on numbers, not lengths.
+//
+// The resulting points are emitted as ratios (`%`), so this is simply a built
+// polygon that fills whatever square box it is placed in. Placing it inside a
+// square keeps the shape independent of the page aspect ratio (see
+// `title-slide` in slides.typ).
+#let corner-design = {
+  let right-top = (1.0, 0.0)
+  let right-middle = (1.0, 0.7)
+  let outer-corner = (1.0, 1.0)
+  let bottom-left = (0.6, 1.0)
+  let bottom-middle = (0.9, 1.0)
   let inner-corner = intersection.line-line(
     // line 1
     right-top,
@@ -33,63 +40,72 @@
     eps: 0.003,
   )
 
-  box(width: size, height: size, {
-    place(polygon(
-      fill: LeipzigAquamarin,
-      stroke: none,
-      bottom-left,
-      bottom-middle,
-      inner-corner,
-    ))
-    place(polygon(
-      fill: LeipzigGranat,
-      stroke: none,
-      right-top,
-      right-center,
-      inner-corner,
-    ))
-    place(polygon(
-      fill: LeipzigKarneol,
-      stroke: none,
-      bottom-middle,
-      inner-corner,
-      right-middle,
-      outer-corner,
-    ))
-  })
+  // Map a unitless point to relative (ratio) coordinates and draw a polygon.
+  let rel(p) = (p.at(0) * 100%, p.at(1) * 100%)
+  let shape(fill, ..points) = place(polygon(
+    fill: fill,
+    stroke: none,
+    ..points.pos().map(rel),
+  ))
+
+  shape(LeipzigAquamarin, bottom-left, bottom-middle, inner-corner)
+  shape(LeipzigGranat, right-top, right-middle, inner-corner)
+  shape(LeipzigKarneol, bottom-middle, inner-corner, right-middle, outer-corner)
 }
 
 
-#let side-design(size: 100%) = {
-  let p(x, y) = (x * size, y * size)
-
-  let top-left = p(0.6, 0.0)
-  let top-middle = p(0.93, 0.0)
-  let top-right = p(1.0, 0.0)
-  let bottom-left = p(0.65, 1.0)
-  let bottom-center1 = p(0.9, 1.0)
-  let bottom-center2 = p(0.95, 1.0)
+// A taller "side band" variant of the accent. Same conventions as
+// `corner-design`: unitless geometry in the unit square, emitted as ratios so
+// it fills whatever square box it is placed in.
+#let side-design = {
+  let top-left = (0.6, 0.0)
+  let top-middle = (0.93, 0.0)
+  let top-right = (1.0, 0.0)
+  let bottom-left = (0.65, 1.0)
+  let bottom-center1 = (0.9, 1.0)
+  let bottom-center2 = (0.95, 1.0)
   let inner-corner = intersection.line-line(
     // line 1
     bottom-left,
     top-middle,
-    // line 2,
+    // line 2
     top-left,
     bottom-center1,
     //
     ray: false,
     eps: 0.003,
   )
-  // parallel to bottom-left - inner-corner line! translate the line vector and get intersection with right side of page.
+  // A line parallel to (bottom-left -> inner-corner) but passing through
+  // bottom-center2, intersected with the right edge of the page.
+  let dir = (inner-corner.at(0) - bottom-left.at(0), inner-corner.at(1) - bottom-left.at(1))
   let right-middle = intersection.line-line(
-    // line 1: the right side
+    // line 1: the right edge
     (1.0, 0.0),
     (1.0, 1.0),
-    // line 2: moved parallel
+    // line 2: parallel, through bottom-center2
     bottom-center2,
-    (inner-corner.at(0) + bottom-center2 - bottom-left.at(0), inner-corner.at(1)),
+    (bottom-center2.at(0) + dir.at(0), bottom-center2.at(1) + dir.at(1)),
     ray: true,
     eps: 0.03,
+  )
+
+  let rel(p) = (p.at(0) * 100%, p.at(1) * 100%)
+  let shape(fill, ..points) = place(polygon(
+    fill: fill,
+    stroke: none,
+    ..points.pos().map(rel),
+  ))
+
+  shape(LeipzigAquamarin, top-left, inner-corner, bottom-left)
+  shape(LeipzigGranat, top-left, top-middle, inner-corner)
+  shape(
+    LeipzigKarneol,
+    top-middle,
+    top-right,
+    right-middle,
+    bottom-center2,
+    bottom-center1,
+    inner-corner,
   )
 }
 
