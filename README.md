@@ -3,10 +3,11 @@
 :rocket: the Leipzig style, but in *typst*.
 Inspired by [Leipzig Beamer](https://github.com/bmondal94/Leipzig-Beamer-Template)
 
+This theme is built on top of [Touying](https://github.com/touying-typ/touying).
+
 ## :gear: Prerequisites
 
 - Arial font family (Liberation Sans as fallback)
-- Futura font family (Jost as fallback)
 - `typst >= 0.12.0` compiler installed
 - `git` and `python3` installed
 
@@ -30,15 +31,21 @@ you can start writing your own documents.
 The default setup will look like this:
 
 ```typst
-#import "@preview/polylux:0.4.0": *
-#import "@local/leipzig-typst:0.0.1": leipzig-theme, main
+#import "@local/leipzig-typst:0.0.1": *
 
 // initialize the template with this function (important!)
-#show: main.setup-theme.with(
-  short-author: "Lukas Böhm",
-  short-title: "Test Document",
-  short-date: datetime.today(),
-  short-organization: "Lab1",
+#show: leipzig-theme.with(
+  aspect-ratio: "16-9",
+  config-info(
+    title: [Test Document],
+    subtitle: [showing off the theme],
+    author: [Lukas Böhm],
+    institution: [Institut für Informatik],
+    place: [Leipzig],
+    date: datetime.today(),
+    // optional: extra logos shown side-by-side on the title slide
+    // logos: (image("logo-a.svg", height: 1.2cm), image("logo-b.svg", height: 1.2cm)),
+  ),
 )
 ```
 
@@ -46,23 +53,27 @@ You're ready to get going!
 Write your first presentation. For example like this:
 
 ```typst
-#title-slide(
-  title: "Test Document showing off the theme",
-  subtitle: "in Typst, the new Markup Language",
-  authors: (
-    (
-      name: "Theresa Tungsten",
-      affiliation: "Artos Institute",
-      email: "tung@artos.edu",
-    ),
-    (name: "Eugene Deklan", affiliation: "Honduras State"),
-    (name: "Lukas Böhm"),
-  ),
-)
+// the title slide reads its content from `config-info`
+#title-slide()
 
-#slide(title: "Introduction", subtitle: "What is this?")[
-  This file demonstrates the usage of the Leipzig theme for typst.
+// a level-1 heading becomes an intermission / section slide
+= Introduction
+
+// a level-2 heading becomes the slide header (ALL CAPS, bold);
+// the optional subheader is passed to `#slide`
+== What is this?
+
+#slide(subheader: [A first slide])[
+  This file demonstrates the usage of the Leipzig theme for Typst.
+
+  - bullet points use orange dashes
+    - and shrink from the second level on
 ]
+
+// content directly after a level-2 heading does not even need `#slide`
+== Another slide
+
+Just write your content here.
 ```
 
 ## :sparkles: Examples
@@ -80,8 +91,8 @@ TODO
 
 ## :lightning: Debugging
 
-### Polylux Error
+### Touying Error
 
-In case there are inexplicable compiler errors, try redownloading the dependency packages (polylux).
+In case there are inexplicable compiler errors, try redownloading the dependency package (touying).
 First delete it from [the cache where it is saved](https://docs.rs/dirs/latest/dirs/fn.cache_dir.html).
-(e.g. `rm -rf ~/.cache/typst/packages/preview/polylux` on linux) then try again.
+(e.g. `rm -rf ~/.cache/typst/packages/preview/touying` on linux) then try again.

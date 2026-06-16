@@ -1,141 +1,193 @@
-#import "components.typ": *
-#import "util.typ": *
+#import "@preview/touying:0.7.4": *
+#import "colors.typ": *
 #import "fonts.typ": *
-#import "@preview/polylux:0.4.0": toolbox, slide as polylux-slide
-#import "styles.typ": *
+#import "components.typ": (
+  leipzig-footer, leipzig-header, plaque, title-corner-shape,
+)
 
-// master slide templates are in here
-
-
-#let title-slide(
-  title: "Title",
-  subtitle: none,
-  authors: (),
-  date: datetime.today(), // FIXME: use the global date as default
-  body: none,
-) = theme => {
-  let content = {
-    v(1.5cm)
-
-    // title
-    text(size: TitleFontSize, weight: "bold", title)
-
-    // subtitle
-    if subtitle != none {
-      linebreak()
-      text(size: SecondFontSize, subtitle)
-    }
-
-    v(0.5cm)
-
-    // authors
-    // FIXME: this can overflow horizontally
-    stack(
-      dir: ltr,
-      spacing: 1cm,
-      ..authors.map(author => {
-        assert("name" in author)
-        text(
-          weight: "bold",
-          if "email" in author {
-            link("mailto:" + author.email, author.name)
-          } else {
-            author.name
-          },
-        )
-        if "affiliation" in author {
-          footnote(author.affiliation)
+// Regular content slide.
+//
+// The slide header (ALL CAPS, bold) is taken from the preceding level-2
+// heading (`== ...`); the optional subheader (ALL CAPS) is passed explicitly.
+//
+// - subheader (content, none): the slide subheader shown below the header.
+#let slide(
+  subheader: none,
+  config: (:),
+  repeat: auto,
+  setting: body => body,
+  composer: auto,
+  ..bodies,
+) = touying-slide-wrapper(self => {
+  let self = utils.merge-dicts(
+    self,
+    config-page(header: leipzig-header, footer: leipzig-footer),
+  )
+  let new-setting = body => {
+    show: setting
+    set align(top + left)
+    // Slide header from the current level-2 heading + optional subheader.
+    block(
+      width: 100%,
+      below: 0.8em,
+      {
+        context {
+          let h = utils.current-heading(level: 2, depth: self.slide-level)
+          if h != none {
+            text(
+              size: slide-header-size,
+              weight: "bold",
+              fill: LeipzigSchwarz,
+              upper(h.body),
+            )
+          }
         }
-      }),
+        if subheader != none {
+          linebreak()
+          text(size: subheader-size, fill: LeipzigSchwarz, upper(subheader))
+        }
+      },
     )
-
-    // date
-    text(size: TextFontSize, date.display("[month repr:long] [day], [year]"))
-    linebreak()
-
     body
   }
+  touying-slide(
+    self: self,
+    config: config,
+    repeat: repeat,
+    setting: new-setting,
+    composer: composer,
+    ..bodies,
+  )
+})
 
-  // needs to be here because of: https://github.com/typst/typst/issues/1467#issuecomment-1588684304
-  show footnote.entry: set text(fill: theme.TitleFontColor)
-  set footnote.entry(separator: line(length: 30%, stroke: config.LineWidthThin + theme.TitleFontColor))
-  show footnote: set text(fill: theme.TitleFontColor)
-  show: page-with-title-header-and-background(theme)
-  polylux-slide(content)
-}
 
-#let slide(title: none, subtitle: none, body) = theme => {
-  show: page-with-header-and-footer(theme, title, subtitle)
-  show: styled-enum(theme)
-  show: styled-terms(theme)
-  show: styled-list(theme)
-  show: styled-link(theme)
-  polylux-slide(body)
-}
+// Title slide: a blank page with the Leipzig plaque in the top-left, a
+// vertically centered text block (subtitle, title, place/date, author, logos)
+// and the three-coloured corner accent in the bottom-right.
+//
+// Reads `title`, `subtitle`, `author`, `date`, `place` and `logos` from the
+// presentation info (set via `config-info`); any of them may also be passed
+// directly to `title-slide`. `logos` is an array of already-constructed
+// `image(..)` values (paths are resolved relative to your document, so they
+// must be built on your side).
+#let title-slide(
+  config: (:),
+  ..args,
+) = touying-slide-wrapper(self => {
+  let self = utils.merge-dicts(
+    self,
+    config-common(freeze-slide-counter: true),
+    config-page(header: none, footer: none, margin: 0pt, fill: LeipzigWeiss),
+    config,
+  )
+  let info = self.info + args.named()
+  let pad-x = 1.4cm
+  let logos = info.at("logos", default: ())
+  let talk-place = info.at("place", default: none)
 
-#let focus-slide(title: none, subtitle: none, body) = theme => {
-  show: page-with-header-and-footer(theme, title, subtitle)
-  show text: emph
-  let content = align(center + horizon, body)
-  polylux-slide(content)
-}
+  let meta-line(left, right) = {
+    set text(size: date-size, fill: LeipzigSchwarz)
+    if left != none and right != none {
+      [#left, #right]
+    } else if left != none {
+      left
+    } else if right != none {
+      right
+    }
+  }
 
-#let slide-plain(body) = theme => {
-  show: page-with-footer(theme)
-  polylux-slide(body)
-}
+  let blocks = ()
+  if info.subtitle != none {
+    blocks.push(text(size: subtitle-size, fill: LeipzigSchwarz, info.subtitle))
+  }
+  if info.title != none {
+    blocks.push(text(
+      size: title-size,
+      weight: "bold",
+      fill: LeipzigSchwarz,
+      upper(info.title),
+    ))
+  }
+  if talk-place != none or info.date != none {
+    blocks.push(meta-line(
+      talk-place,
+      if info.date != none { utils.display-info-date(self) },
+    ))
+  }
+  if info.author != none {
+    blocks.push(text(size: date-size, fill: LeipzigSchwarz, info.author))
+  }
+  if logos != () {
+    blocks.push(stack(dir: ltr, spacing: 1cm, ..logos))
+  }
 
-#let slide-fullscreen(body) = theme => {
-  show: page-full-screen(theme)
-  polylux-slide(body)
-}
+  let body = {
+    place(top + left, dx: pad-x, dy: 1.2cm, plaque(height: 2.2cm))
+    place(bottom + right, title-corner-shape(size: 5cm))
+    align(
+      horizon + left,
+      pad(x: pad-x, stack(dir: ttb, spacing: 0.9em, ..blocks)),
+    )
+  }
+  touying-slide(self: self, body)
+})
 
-// section overview slide
-#let section-slide(title) = theme => {
-  show: page-with-title-header-and-fill(theme)
 
-  // styling of the section titles (highlight current one)
-  // set enum(
-  //   numbering: n => {
-  //     if secs.map(x => x.body).at(int(n) - 1) == current-sec {
-  //       text(fill: theme.TitleFontColor, [#str(n)])
-  //     } else {
-  //       text(fill: BaseColorA(theme), [#str(n)])
-  //     }
-  //   },
-  // )
+// Intermission / section slide, generated automatically for every level-1
+// heading (`= ...`). White title on the primary colour, no header or footer.
+#let intermission(
+  config: (:),
+  level: 1,
+  numbered: false,
+  body,
+) = touying-slide-wrapper(self => {
+  let self = utils.merge-dicts(
+    self,
+    config-page(fill: self.colors.primary, header: none, footer: none),
+  )
+  let slide-body = {
+    set align(horizon + left)
+    set text(fill: self.colors.neutral-lightest)
+    block({
+      text(
+        size: title-size,
+        weight: "bold",
+        upper(utils.display-current-heading(level: level, numbered: numbered)),
+      )
+      if body != none {
+        linebreak()
+        text(size: subtitle-size, body)
+      }
+    })
+  }
+  touying-slide(self: self, config: config, slide-body)
+})
 
-  // actually render the section titles
-  set text(size: TitleFontSize, weight: "bold")
 
-  // TODO: turn into link!
-  let secs = toolbox.all-sections((sections, current) => {
-    sections
-      .map(s => if s == current {
-        // render the current section title
-        text(
-          fill: theme.TitleFontColor,
-          s,
-        )
-        // [+ #link(loc)[#text(fill: theme.TitleFontColor, current-sec)]]
-      } else {
-        // render the other section titles
-        text(
-          fill: BaseColorA(theme),
-          s.body,
-        )
-        // [+ #link(sec.loc)[#text(fill: BaseColorA(theme), sec.body) ]]
-      })
-      .join(linebreak())
-  })
-
-  // FIXME: can overflow horizontally (use scaling if more than ~8 sections)
-  polylux-slide[
-    #align(horizon)[
-      #secs
-    ]
-  ]
-
-  // has to be down here due to state update bug
-  toolbox.register-section(title)
-}
+// Focus slide: large centered content on the primary colour, used to draw
+// attention to a single statement.
+#let focus-slide(
+  config: (:),
+  background: auto,
+  foreground: auto,
+  body,
+) = touying-slide-wrapper(self => {
+  let self = utils.merge-dicts(
+    self,
+    config-common(freeze-slide-counter: true),
+    config-page(
+      fill: if background == auto { self.colors.primary } else { background },
+      header: none,
+      footer: none,
+      margin: 2em,
+    ),
+  )
+  set text(
+    fill: if foreground == auto { self.colors.neutral-lightest } else {
+      foreground
+    },
+    weight: "bold",
+    size: title-size,
+  )
+  touying-slide(self: self, config: config, align(center + horizon, body))
+})

@@ -37,14 +37,6 @@ def copy_files(source_dir: str, target_dir: str) -> None:
         ignore=ign,
         dirs_exist_ok=True,
     )
-    # theme
-    os.makedirs(os.path.join(target_dir, "themes"))
-    copytree(
-        os.path.join(source_dir, "themes"),
-        os.path.join(target_dir, "themes"),
-        ignore=ign,
-        dirs_exist_ok=True,
-    )
     # entrypoint
     copy(
         os.path.join(source_dir, "leipzig-typst.typ"),

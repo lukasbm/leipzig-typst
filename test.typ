@@ -1,31 +1,57 @@
-#import "@preview/touying:0.7.4": *
-#import "leipzig-typst.typ": *   // your local copy
+#import "leipzig-typst.typ": *
 
 #show: leipzig-theme.with(
   aspect-ratio: "16-9",
-  config-info(title: "test"),
+  config-info(
+    title: [Leipzig Typst Theme],
+    subtitle: [Eine Vorlage im Corporate Design],
+    author: [Lukas Böhm],
+    institution: [Institut für Informatik],
+    place: [Leipzig],
+    date: datetime.today(),
+    logos: (
+      image("assets/logo_leipzig.svg", height: 1.2cm),
+    ),
+  ),
 )
 
+#title-slide()
+
+= Einführung
 
 == Formatierungsanmerkung
 
-#slide[
-  Überschriften, Zwischenüberschriften und Fließtext werden beim Eintippen der ersten Textzeile automatisch formatiert.
-  - Aufzählungen können über die Schaltfläche „Aufzählungszeichen“ eingestellt werden.
-  - Nach einem Umbruch (Enter) erscheint ein weiteres Aufzählungszeichen.
-    - Durch Drücken der Tabulatortaste wird der Text im Format der nächsten Gliederungseben dargestellt.
+#slide(subheader: [Wie alles funktioniert])[
+  Überschriften, Zwischenüberschriften und Fließtext werden automatisch
+  formatiert.
 
-  *Titel und Fußzeile* der Präsentation können automatisch für alle Folien geändert werden unter Ansicht/Folienmaster. Dort auf der Masterfolie 2 den Text bearbeiten.
+  - Aufzählungen nutzen orangefarbene Striche
+  - Nach einem Umbruch erscheint ein weiteres Aufzählungszeichen
+    - Die zweite Ebene ist etwas kleiner
+      - und die dritte noch tiefer
+
+  *Titel und Fußzeile* der Präsentation werden automatisch für alle Folien
+  gesetzt.
 ]
 
-= Intermission
+== Ein einfaches Beispiel
 
-== Another slide
+Diese Folie hat keine explizite `#slide`-Funktion, sondern folgt direkt auf
+die Überschrift.
+
+- Punkt eins
+- Punkt zwei
+
+= Hauptteil
+
+== Inhalt
 
 #slide[
-  hi
+  Eine Folie ganz ohne Unterüberschrift.
 
-  #title_corner_shape
+  #lorem(30)
 ]
 
-// TODO: subtitle!
+#focus-slide[
+  Vielen Dank!
+]

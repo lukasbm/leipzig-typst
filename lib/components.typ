@@ -1,103 +1,94 @@
-#import "util.typ": *
-#import "fonts.typ": *
+#import "@preview/touying:0.7.4": utils
 #import "colors.typ": *
-#import "@preview/polylux:0.4.0": toolbox
+#import "fonts.typ": *
 
-#let fau-block(title: none, body) = theme => {
-  // FIXME: make the fill color of content dependent on the theme
-  // It should still be grayscale?
-  let content = block(width: 100%, breakable: false, fill: luma(95%), inset: 5pt, body)
+// The University of Leipzig logo (seal + "UNIVERSITÄT LEIPZIG" wordmark).
+// Used as the large plaque on the title slide and as the small logo in the
+// footer of every content slide.
+#let leipzig-logo = "../assets/logo_leipzig.svg"
 
-  let header = if title != none {
-    set text(theme.TitleFontColor, weight: "bold")
-    block(
-      width: 100%,
-      breakable: false,
-      fill: theme.BaseColor,
-      inset: 5pt,
-      title,
-    )
-  } else {
-    block(width: 100%, height: 2mm, breakable: false, fill: theme.BaseColor)
-  }
+#let plaque(height: 1.6cm) = image(leipzig-logo, height: height)
 
-  stack(dir: ttb, header, content)
+// The three-coloured corner accent placed in the bottom-right corner of the
+// title slide. The polygon coordinates are resolved against `size` explicitly
+// (absolute lengths) so the shape is deterministic regardless of context.
+#let title-corner-shape(size: 3.5cm) = {
+  let p(x, y) = (x * size, y * size)
+  let inner-corner = p(0.90, 0.90)
+  let start-left = p(1.00, 0.00)
+  let start-top = p(0.70, 1.00)
+  let outer-corner = p(1.00, 1.00)
+  let mid-left = p(0.87, 1.00)
+  let mid-top = p(1.00, 0.87)
+
+  box(width: size, height: size, {
+    place(polygon(
+      fill: LeipzigAquamarin,
+      stroke: none,
+      start-left,
+      outer-corner,
+      inner-corner,
+    ))
+    place(polygon(
+      fill: LeipzigGranat,
+      stroke: none,
+      start-top,
+      mid-top,
+      inner-corner,
+    ))
+    place(polygon(
+      fill: LeipzigKarneol,
+      stroke: none,
+      mid-left,
+      inner-corner,
+      mid-top,
+      outer-corner,
+    ))
+  })
 }
 
-#let title-header = theme => {
-  // kennung and wortmarke
+// Orange en-dash used as the list marker on every level.
+#let list-marker = text(fill: LeipzigOrange, [–])
+
+// Page header: a short orange rule followed by the presentation title and
+// subtitle, all on a single line (Kopf- und Fußzeile, 12pt).
+#let leipzig-header(self) = {
+  set text(size: header-footer-size, fill: LeipzigSchwarz)
+  set align(left + horizon)
+  let title = self.info.title
+  let subtitle = self.info.subtitle
   grid(
-    columns: (1fr, config.WordMarkBoxWidth),
-    column-gutter: config.WordMarkSkip,
-    rows: config.HeaderHeight,
-    align(horizon + left)[
-      #set image(height: config.KennungHeight)
-      #theme.KennungWhite
-    ],
-    align(top + right)[
-      // Logo
-      #set image(width: config.WordMarkTitleWidth, height: config.WordMarkTitleHeight)
-      #pad(y: 10pt, x: 5pt, WortmarkeWhite)
-    ],
-  )
-
-  // line
-  show line: set block(above: 0em, below: 0mm)
-  line(
-    length: 200%,
-    stroke: config.LineWidthThick + theme.SeparationLineColor,
+    columns: (1cm, auto),
+    column-gutter: 0.6em,
+    align: horizon + left,
+    line(length: 100%, stroke: 1.5pt + LeipzigOrange),
+    {
+      if title != none { strong(title) }
+      if title != none and subtitle != none { h(0.5em) }
+      if subtitle != none { subtitle }
+    },
   )
 }
 
-#let header(title: none, subtitle: none) = theme => {
-  // title, subtitle and wortmarke
+// Page footer: the Leipzig logo, the institution and the current slide number
+// (right-aligned, in red), all on a single line.
+#let leipzig-footer(self) = {
+  set text(size: header-footer-size, fill: LeipzigSchwarz)
+  set align(left + horizon)
   grid(
-    columns: (1fr, config.WordMarkBoxWidth),
-    column-gutter: config.WordMarkSkip,
-    rows: config.HeaderHeight,
-    align(top + left)[
-      #v(config.TitleSkip)
-      #show text: set block(above: 0em, below: 0em)
-      #if title != none {
-        text(size: TitleFontSize, weight: "bold", fill: theme.BaseColor, title)
-      }
-      #if title != none and subtitle != none {
-        linebreak()
-        text(size: SecondFontSize, fill: theme.BaseColor, subtitle)
-      }
-    ],
-    align(top + right)[
-      // Logo
-      #set image(width: config.WordMarkWidth, height: config.WordMarkHeight)
-      #pad(y: 10pt, x: 5pt, WortmarkeBlue)
-    ],
+    columns: (auto, auto, 1fr, auto),
+    column-gutter: 0.8em,
+    align: horizon + left,
+    plaque(height: 0.55cm),
+    if self.info.institution != none { self.info.institution },
+    none,
+    align(
+      right + horizon,
+      text(
+        size: page-number-size,
+        fill: LeipzigGranat,
+        context utils.slide-counter.display(),
+      ),
+    ),
   )
-
-  // line
-  show line: set block(above: 0em, below: 0mm)
-  line(
-    length: 200%,
-    stroke: config.LineWidthThick + theme.SeparationLineColor,
-  )
-}
-
-#let footer = theme => {
-  // line
-  show line: set block(above: 0mm, below: 3mm)
-  line(length: 200%, stroke: config.LineWidthThin + theme.SeparationLineColor)
-
-  // short texts
-  set text(FooterFontSize)
-  let quad = 0.7cm
-  context text(state-short-organization.get())
-  h(quad)
-  context text(state-short-author.get())
-  h(quad)
-  context text(fill: theme.BaseColor, state-short-title.get())
-  h(1fr)
-  context text(state-short-date.get().display("[month repr:short] [day], [year]"))
-  h(quad)
-  // FIXME: does this work???
-  text(toolbox.slide-number + [~/~] + toolbox.last-slide-number)
-  h(quad)
 }
