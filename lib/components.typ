@@ -132,24 +132,33 @@
   )
 }
 
-// Page footer: the Leipzig logo, the institution and the current slide number
-// (right-aligned, in red), all on a single line.
+// Page footer: an orange rule separating it from the content, then the Leipzig
+// logo, the institution and the current slide number (right-aligned, in red),
+// all on a single line.
 #let leipzig-footer(self) = {
   set text(size: header-footer-size, fill: LeipzigSchwarz)
   set align(left + horizon)
-  grid(
-    columns: (auto, auto, 1fr, auto),
-    column-gutter: 0.8em,
-    align: horizon + left,
-    plaque(height: 0.55cm),
-    if self.info.institution != none { self.info.institution },
-    none,
-    align(
-      right + horizon,
-      text(
-        size: page-number-size,
-        fill: LeipzigGranat,
-        context utils.slide-counter.display(),
+  stack(
+    dir: ttb,
+    spacing: 0.5em,
+    line(length: 100%, stroke: 1.5pt + LeipzigOrange),
+    grid(
+      columns: (auto, auto, 1fr, auto),
+      column-gutter: 0.8em,
+      align: horizon + left,
+      plaque(height: 0.55cm),
+      if self.info.institution != none { self.info.institution },
+      none,
+      align(
+        right + horizon,
+        pad(
+          right: 0.4cm,
+          text(
+            size: page-number-size,
+            fill: LeipzigGranat,
+            context utils.slide-counter.display(),
+          ),
+        ),
       ),
     ),
   )

@@ -1,7 +1,13 @@
 #import "@preview/touying:0.7.4": *
 #import "colors.typ": *
 #import "fonts.typ": *
-#import "components.typ": corner-design, leipzig-footer, leipzig-header, plaque
+#import "components.typ": (
+  corner-design,
+  leipzig-footer,
+  leipzig-header,
+  plaque,
+  side-design,
+)
 
 // Regular content slide.
 //
@@ -139,11 +145,62 @@
 
 
 // Intermission / section slide, generated automatically for every level-1
-// heading (`= ...`). White title on the primary colour, no header or footer.
+// heading (`= ...`). A white slide with a large bold black title and the
+// `side-design` band on the right (full height, anchored top-right). The
+// automatic invocation does not pass a subheader, but it is available when
+// calling `intermission` manually.
+//
+// - subheader (content, none): an optional line shown below the title.
 #let intermission(
   config: (:),
   level: 1,
   numbered: false,
+  subheader: none,
+  body,
+) = touying-slide-wrapper(self => {
+  let self = utils.merge-dicts(
+    self,
+    config-page(fill: LeipzigWeiss, header: none, footer: none, margin: 0pt),
+  )
+  let slide-body = {
+    // Side band, full height, anchored to the page's top-right corner; drawn
+    // into a square of the page height so it stays aspect-ratio independent.
+    place(top + right, layout(size => box(
+      width: size.height,
+      height: size.height,
+      side-design,
+    )))
+    set text(fill: LeipzigSchwarz)
+    align(
+      horizon + left,
+      pad(x: 1.4cm, block({
+        text(
+          size: title-size,
+          weight: "bold",
+          upper(utils.display-current-heading(level: level, numbered: numbered)),
+        )
+        if subheader != none {
+          linebreak()
+          text(size: subtitle-size, subheader)
+        }
+        if body != none {
+          linebreak()
+          text(size: subtitle-size, body)
+        }
+      })),
+    )
+  }
+  touying-slide(self: self, config: config, slide-body)
+})
+
+
+// Filled section slide: the previous intermission design, kept as a reusable
+// template. White title on the primary colour, no header or footer.
+#let intermission-filled(
+  config: (:),
+  level: 1,
+  numbered: false,
+  subheader: none,
   body,
 ) = touying-slide-wrapper(self => {
   let self = utils.merge-dicts(
@@ -159,6 +216,10 @@
         weight: "bold",
         upper(utils.display-current-heading(level: level, numbered: numbered)),
       )
+      if subheader != none {
+        linebreak()
+        text(size: subtitle-size, subheader)
+      }
       if body != none {
         linebreak()
         text(size: subtitle-size, body)
